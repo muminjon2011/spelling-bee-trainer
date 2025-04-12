@@ -52,73 +52,76 @@
 <body>
 
     <h1>Spelling Bee Trainer</h1>
-    <p id="word">Word: <span class="letter">HELLO</span></p>
-    <p>Pronounce each letter:</p>
+    <p id="word">Word: <span class="letter">DEVELOPMENT</span></p>
+    <p>Listen to the word and then spell it out by saying each letter one by one.</p>
     
     <div id="inputArea" class="input-letter"></div>
 
-    <button onclick="startRecognition()">Start Listening</button>
-    <button class="reset-btn" onclick="resetGame()">Restart</button>
-    
     <p id="message" class="message"></p>
+    
+    <button onclick="startGame()">Start Listening</button>
+    <button class="reset-btn" onclick="resetGame()">Restart</button>
 
     <script>
-        const words = ["HELLO", "WORLD", "DEVELOPER", "COMPUTER", "PYTHON"];
+        // Array of difficult words
+        const words = [
+            "DEVELOPMENT", "PSYCHOLOGY", "EMBELLISHMENT", "PHILOSOPHICAL", "EXTRAORDINARY", 
+            "DISINTEGRATION", "UNCHARACTERISTIC", "CONSTITUTIONAL", "INCONSTITUCIONAL", "SUBSTANTIATION"
+        ];
+        
         let currentWordIndex = 0;
-        let word = words[currentWordIndex];  // Текущее слово
-        let currentLetterIndex = 0; // Индекс текущей буквы
-        let correctLetters = word.split('');  // Разбиваем слово на отдельные буквы
-        let inputLetters = []; // Массив для хранения правильных букв, которые произнес пользователь
+        let word = words[currentWordIndex];
+        let correctLetters = word.split('');
+        let currentLetterIndex = 0;
 
-        // Инициализация SpeechRecognition
+        const synth = window.speechSynthesis;
+
+        function speakWord(word) {
+            let utterance = new SpeechSynthesisUtterance(word);
+            synth.speak(utterance);
+        }
+
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';  // Устанавливаем язык на английский
-        recognition.continuous = true;  // Слушаем до завершения
-        recognition.interimResults = false;  // Не показывать промежуточные результаты
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
 
-        // Обработчик распознавания речи
         recognition.onresult = function (event) {
             const lastResult = event.results[event.results.length - 1];
-            const lastTranscription = lastResult[0].transcript.trim().toUpperCase(); // Преобразуем в верхний регистр
+            const lastTranscription = lastResult[0].transcript.trim().toUpperCase();
 
-            // Проверяем, правильная ли буква
-            if (correctLetters[currentLetterIndex] === lastTranscription) {
-                inputLetters.push(lastTranscription);
-                document.getElementById("inputArea").innerHTML += `<span style="color:green">${lastTranscription} </span>`;  // Показываем правильную букву в зелёном
+            if (lastTranscription === correctLetters[currentLetterIndex]) {
+                document.getElementById("message").textContent = `Correct! Now, spell the next letter.`;
                 currentLetterIndex++;
 
-                if (inputLetters.length === correctLetters.length) {
-                    document.getElementById("message").textContent = "You have spelled the word correctly!";
-                    recognition.stop(); // Останавливаем распознавание
+                if (currentLetterIndex < correctLetters.length) {
+                    speakWord(correctLetters[currentLetterIndex]);
                 } else {
-                    document.getElementById("message").textContent = `Pronounce the next letter: ${correctLetters[currentLetterIndex]}`;
+                    document.getElementById("message").textContent = `Great job! You spelled the word correctly: ${word}`;
                 }
             } else {
-                document.getElementById("message").textContent = `Wrong letter! Please try again.`;
+                document.getElementById("message").textContent = `Oops! Wrong letter, please try again.`;
             }
         };
 
-        // Запуск распознавания
         function startRecognition() {
-            document.getElementById("message").textContent = `Pronounce the letter: ${correctLetters[currentLetterIndex]}`;
             recognition.start();
         }
 
-        // Перезапуск игры
-        function resetGame() {
-            inputLetters = [];
-            currentLetterIndex = 0;
-            word = words[currentWordIndex];  // Перезапуск текущего слова
-            correctLetters = word.split('');
-            document.getElementById("inputArea").innerHTML = "";
-            document.getElementById("message").textContent = `Pronounce the letter: ${correctLetters[currentLetterIndex]}`;
-            document.getElementById("word").innerHTML = `Word: <span class="letter">${word}</span>`;
+        function startGame() {
+            document.getElementById("message").textContent = "Listen carefully and start spelling!";
+            speakWord(word);
+            startRecognition();
         }
 
-        // Переключение на следующее слово
-        function nextWord() {
-            currentWordIndex = (currentWordIndex + 1) % words.length;  // Переход к следующему слову
-            resetGame();  // Перезапуск игры с новым словом
+        function resetGame() {
+            currentLetterIndex = 0;
+            currentWordIndex = (currentWordIndex + 1) % words.length; // Cycle through words
+            word = words[currentWordIndex];
+            correctLetters = word.split('');
+            document.getElementById("message").textContent = "Let's start spelling!";
+            speakWord(word);
+            startRecognition();
         }
 
     </script>
