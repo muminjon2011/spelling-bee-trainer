@@ -63,72 +63,77 @@
     <button class="reset-btn" onclick="resetGame()">Restart</button>
 
     <script>
-        // Array of difficult and short words
-        const words = [
-            "DEVELOPMENT", "PSYCHOLOGY", "EMBELLISHMENT", "PHILOSOPHICAL", "EXTRAORDINARY", 
-            "DISINTEGRATION", "UNCHARACTERISTIC", "CONSTITUTIONAL", "INCONSTITUCIONAL", "SUBSTANTIATION",
-            "CAT", "DOG", "BAT", "CUP", "HAT", "PEN", "MOP", "CAR", "SUN", "TREE"
-        ];
-        
-        let currentWordIndex = 0;
-        let word = words[currentWordIndex];
-        let correctLetters = word.split('');
-        let currentLetterIndex = 0;
+        try {
+            // Array of difficult and short words
+            const words = [
+                "DEVELOPMENT", "PSYCHOLOGY", "EMBELLISHMENT", "PHILOSOPHICAL", "EXTRAORDINARY", 
+                "DISINTEGRATION", "UNCHARACTERISTIC", "CONSTITUTIONAL", "INCONSTITUCIONAL", "SUBSTANTIATION",
+                "CAT", "DOG", "BAT", "CUP", "HAT", "PEN", "MOP", "CAR", "SUN", "TREE"
+            ];
+            
+            let currentWordIndex = 0;
+            let word = words[currentWordIndex];
+            let correctLetters = word.split('');
+            let currentLetterIndex = 0;
 
-        const synth = window.speechSynthesis;
+            const synth = window.speechSynthesis;
 
-        function speakWord(word) {
-            let utterance = new SpeechSynthesisUtterance(word);
-            synth.speak(utterance);
-        }
-
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onresult = function (event) {
-            const lastResult = event.results[event.results.length - 1];
-            const lastTranscription = lastResult[0].transcript.trim().toUpperCase();
-
-            // Allow minor variations in letter pronunciation
-            const normalizedTranscription = lastTranscription.replace(/[^A-Z]/g, '').toUpperCase();
-
-            if (normalizedTranscription === correctLetters[currentLetterIndex]) {
-                document.getElementById("message").textContent = `Correct! Now, spell the next letter.`;
-                currentLetterIndex++;
-
-                if (currentLetterIndex < correctLetters.length) {
-                    speakWord(correctLetters[currentLetterIndex]);
-                } else {
-                    document.getElementById("message").textContent = `Great job! You spelled the word correctly: ${word}`;
-                }
-            } else {
-                document.getElementById("message").textContent = `Oops! Wrong letter, please try again.`;
+            function speakWord(word) {
+                let utterance = new SpeechSynthesisUtterance(word);
+                synth.speak(utterance);
             }
-        };
 
-        function startRecognition() {
-            recognition.start();
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function (event) {
+                const lastResult = event.results[event.results.length - 1];
+                const lastTranscription = lastResult[0].transcript.trim().toUpperCase();
+
+                // Allow minor variations in letter pronunciation
+                const normalizedTranscription = lastTranscription.replace(/[^A-Z]/g, '').toUpperCase();
+
+                if (normalizedTranscription === correctLetters[currentLetterIndex]) {
+                    document.getElementById("message").textContent = `Correct! Now, spell the next letter.`;
+                    currentLetterIndex++;
+
+                    if (currentLetterIndex < correctLetters.length) {
+                        speakWord(correctLetters[currentLetterIndex]);
+                    } else {
+                        document.getElementById("message").textContent = `Great job! You spelled the word correctly: ${word}`;
+                    }
+                } else {
+                    document.getElementById("message").textContent = `Oops! Wrong letter, please try again.`;
+                }
+            };
+
+            function startRecognition() {
+                recognition.start();
+            }
+
+            function startGame() {
+                document.getElementById("message").textContent = "Listen carefully and start spelling!";
+                speakWord(word);
+                startRecognition();
+            }
+
+            function resetGame() {
+                currentLetterIndex = 0;
+                currentWordIndex = (currentWordIndex + 1) % words.length; // Cycle through words
+                word = words[currentWordIndex];
+                correctLetters = word.split('');
+                document.getElementById("message").textContent = "Let's start spelling!";
+                speakWord(word);
+                startRecognition();
+            }
+
+        } catch (error) {
+            console.error("Error in the application: ", error);
+            document.body.innerHTML = "<h1>An error occurred. Please check the console for details.</h1>";
         }
-
-        function startGame() {
-            document.getElementById("message").textContent = "Listen carefully and start spelling!";
-            speakWord(word);
-            startRecognition();
-        }
-
-        function resetGame() {
-            currentLetterIndex = 0;
-            currentWordIndex = (currentWordIndex + 1) % words.length; // Cycle through words
-            word = words[currentWordIndex];
-            correctLetters = word.split('');
-            document.getElementById("message").textContent = "Let's start spelling!";
-            speakWord(word);
-            startRecognition();
-        }
-
     </script>
 
 </body>
