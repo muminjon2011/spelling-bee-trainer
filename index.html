@@ -86,12 +86,16 @@
         recognition.lang = 'en-US';
         recognition.continuous = false;
         recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
         recognition.onresult = function (event) {
             const lastResult = event.results[event.results.length - 1];
             const lastTranscription = lastResult[0].transcript.trim().toUpperCase();
 
-            if (lastTranscription === correctLetters[currentLetterIndex]) {
+            // Allow minor variations in letter pronunciation
+            const normalizedTranscription = lastTranscription.replace(/[^A-Z]/g, '').toUpperCase();
+
+            if (normalizedTranscription === correctLetters[currentLetterIndex]) {
                 document.getElementById("message").textContent = `Correct! Now, spell the next letter.`;
                 currentLetterIndex++;
 
