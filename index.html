@@ -1,121 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spelling Bee Trainer</title>
-  <style>
-    body {
-      background-color: #f3f3f3;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 2em;
-    }
-    button {
-      padding: 1em 2em;
-      margin: 1em;
-      font-size: 1.2em;
-      border: none;
-      border-radius: 10px;
-      background-color: #ffcc00;
-      cursor: pointer;
-    }
-    #answer {
-      font-size: 1.5em;
-      margin-top: 1em;
-      font-weight: bold;
-    }
-    input {
-      font-size: 1.2em;
-      padding: 0.5em;
-      margin-top: 1em;
-      width: 80%;
-      max-width: 300px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee Trainer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .letter {
+            font-size: 50px;
+            color: #2196F3;
+        }
+        .input-letter {
+            font-size: 30px;
+            margin: 10px;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff5722;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .reset-btn {
+            background-color: #f44336;
+        }
+        .reset-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>🐝 Spelling Bee Trainer</h1>
+    <h1>Spelling Bee Trainer</h1>
+    <p id="word">Word: <span class="letter">HELLO</span></p>
+    <p>Pronounce each letter:</p>
+    
+    <div id="inputArea" class="input-letter"></div>
 
-  <p id="hint">Нажми «Следующее слово», чтобы начать!</p>
+    <button onclick="startRecognition()">Start Listening</button>
+    <button class="reset-btn" onclick="resetGame()">Restart</button>
+    
+    <p id="message" class="message"></p>
 
-  <button onclick="speakWord()">🔊 Прослушать слово</button>
-  <button onclick="startListening()">🎤 Произнеси слово</button>
-  <button onclick="showAnswer()">✅ Показать правильное написание</button>
-  <button onclick="nextWord()">🔁 Следующее слово</button>
+    <script>
+        const words = ["HELLO", "WORLD", "DEVELOPER", "COMPUTER", "PYTHON"];
+        let currentWordIndex = 0;
+        let word = words[currentWordIndex];  // Текущее слово
+        let currentLetterIndex = 0; // Индекс текущей буквы
+        let correctLetters = word.split('');  // Разбиваем слово на отдельные буквы
+        let inputLetters = []; // Массив для хранения правильных букв, которые произнес пользователь
 
-  <div id="answer"></div>
-  <p id="result"></p>
+        // Инициализация SpeechRecognition
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';  // Устанавливаем язык на английский
+        recognition.continuous = true;  // Слушаем до завершения
+        recognition.interimResults = false;  // Не показывать промежуточные результаты
 
-  <script>
-    const words = [
-      { word: "accommodation", hint: "Жильё или место проживания." },
-      { word: "acknowledgment", hint: "Признание чего-либо или кого-либо." },
-      { word: "antidisestablishmentarianism", hint: "Идеология против отделения церкви от государства." },
-      { word: "incomprehensibilities", hint: "Сложности для понимания." },
-      { word: "counterintelligence", hint: "Контрразведка." },
-      { word: "characteristically", hint: "Типичным образом." },
-      { word: "conscientious", hint: "Добросовестный, сознательный." },
-      { word: "extraordinary", hint: "Необычный, исключительный." },
-      { word: "maneuverability", hint: "Манёвренность." },
-      { word: "phenomenon", hint: "Явление, феномен." },
-      { word: "supercalifragilisticexpialidocious", hint: "Вымышленное слово из Mary Poppins." },
-    ];
+        // Обработчик распознавания речи
+        recognition.onresult = function (event) {
+            const lastResult = event.results[event.results.length - 1];
+            const lastTranscription = lastResult[0].transcript.trim().toUpperCase(); // Преобразуем в верхний регистр
 
-    let current = null;
+            // Проверяем, правильная ли буква
+            if (correctLetters[currentLetterIndex] === lastTranscription) {
+                inputLetters.push(lastTranscription);
+                document.getElementById("inputArea").innerHTML += `<span style="color:green">${lastTranscription} </span>`;  // Показываем правильную букву в зелёном
+                currentLetterIndex++;
 
-    function nextWord() {
-      const index = Math.floor(Math.random() * words.length);
-      current = words[index];
-      document.getElementById('hint').innerText = "📘 Подсказка: " + current.hint;
-      document.getElementById('answer').innerText = "";
-      document.getElementById('result').innerText = "";
-    }
+                if (inputLetters.length === correctLetters.length) {
+                    document.getElementById("message").textContent = "You have spelled the word correctly!";
+                    recognition.stop(); // Останавливаем распознавание
+                } else {
+                    document.getElementById("message").textContent = `Pronounce the next letter: ${correctLetters[currentLetterIndex]}`;
+                }
+            } else {
+                document.getElementById("message").textContent = `Wrong letter! Please try again.`;
+            }
+        };
 
-    function speakWord() {
-      if (!current) {
-        alert("Сначала нажми 'Следующее слово'");
-        return;
-      }
-      const utterance = new SpeechSynthesisUtterance(current.word);
-      utterance.lang = 'en-US';
-      speechSynthesis.speak(utterance);
-    }
-
-    function showAnswer() {
-      if (current) {
-        document.getElementById('answer').innerText = "📖 Ответ: " + current.word.toUpperCase().split('').join('-');
-      }
-    }
-
-    function startListening() {
-      if (!current) {
-        alert("Сначала нажми 'Следующее слово'");
-        return;
-      }
-
-      // Инициализация распознавания речи
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.start();
-
-      recognition.onresult = function(event) {
-        const spokenWord = event.results[0][0].transcript.toUpperCase();
-        document.getElementById('result').innerText = "Ты сказал: " + spokenWord;
-
-        if (spokenWord === current.word.toUpperCase()) {
-          alert("✅ Правильно!");
-        } else {
-          alert("❌ Неправильно. Правильный ответ: " + current.word.toUpperCase());
+        // Запуск распознавания
+        function startRecognition() {
+            document.getElementById("message").textContent = `Pronounce the letter: ${correctLetters[currentLetterIndex]}`;
+            recognition.start();
         }
-      };
 
-      recognition.onerror = function(event) {
-        alert("Ошибка распознавания. Попробуй ещё раз.");
-      };
-    }
-  </script>
+        // Перезапуск игры
+        function resetGame() {
+            inputLetters = [];
+            currentLetterIndex = 0;
+            word = words[currentWordIndex];  // Перезапуск текущего слова
+            correctLetters = word.split('');
+            document.getElementById("inputArea").innerHTML = "";
+            document.getElementById("message").textContent = `Pronounce the letter: ${correctLetters[currentLetterIndex]}`;
+            document.getElementById("word").innerHTML = `Word: <span class="letter">${word}</span>`;
+        }
+
+        // Переключение на следующее слово
+        function nextWord() {
+            currentWordIndex = (currentWordIndex + 1) % words.length;  // Переход к следующему слову
+            resetGame();  // Перезапуск игры с новым словом
+        }
+
+    </script>
 
 </body>
 </html>
